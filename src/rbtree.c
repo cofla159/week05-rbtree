@@ -47,9 +47,9 @@ void delete_rbtree(rbtree *t)
 void *rotate(node_t *center_node, rbtree *t, char direction)
 {
   node_t *original_parent = center_node->parent;
-  center_node->parent = direction == 'L' ? center_node->right : center_node->left; // 8의 부모 = 12
+  center_node->parent = direction == 'L' ? center_node->right : center_node->left;
   if (original_parent == t->nil)
-  { // 8의 부모가 닐노드면 루트의 자식이 12
+  {
     t->root = direction == 'L' ? center_node->right : center_node->left;
   }
   else
@@ -65,24 +65,24 @@ void *rotate(node_t *center_node, rbtree *t, char direction)
   }
   if (direction == 'L')
   {
-    center_node->right->parent = original_parent; // 12의 부모=루트
-    node_t *temp = center_node->right->left;      // 9
-    center_node->right->left = center_node;       // 12의 왼쪽=8
-    center_node->right = temp;                    // 8의 오른쪽 = 9
+    center_node->right->parent = original_parent;
+    node_t *temp = center_node->right->left;
+    center_node->right->left = center_node;
+    center_node->right = temp;
     if (temp != t->nil)
     {
-      temp->parent = center_node; // 9의 부모=8
+      temp->parent = center_node;
     }
   }
   else
   {
-    center_node->left->parent = original_parent; // 12의 부모 = 8
+    center_node->left->parent = original_parent;
     node_t *temp = center_node->left->right;
-    center_node->left->right = center_node; // 12의 오른쪽=15
-    center_node->left = temp;               // 15의 왼쪽 = 13
+    center_node->left->right = center_node;
+    center_node->left = temp;
     if (temp != t->nil)
     {
-      temp->parent = center_node; // 13의 부모 = 15
+      temp->parent = center_node;
     }
   }
   return 0;
@@ -233,9 +233,27 @@ int rbtree_erase(rbtree *t, node_t *p)
   return 0;
 }
 
+int rbtree_inorder(node_t *node_now, const rbtree *t, int max_num, key_t *arr, int cnt)
+{
+  if (node_now->left != t->nil)
+  {
+    cnt = rbtree_inorder(node_now->left, t, max_num, arr, cnt);
+  }
+  arr[cnt++] = node_now->key;
+  if (cnt >= max_num)
+  {
+    return cnt;
+  }
+  if (node_now->right != t->nil)
+  {
+    cnt = rbtree_inorder(node_now->right, t, max_num, arr, cnt);
+  }
+  return cnt;
+}
+
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n)
 {
-  // TODO: implement to_array
+  rbtree_inorder(t->root, t, n, arr, 0);
   return 0;
 }
 
@@ -280,6 +298,12 @@ int main()
   // node_t *max_node = rbtree_max(t);
   // printf("min: key:%d color:%d\n", min_node->key, min_node->color);
   // printf("max: key:%d color:%d\n", max_node->key, max_node->color);
-  delete_rbtree(t);
+  // int arr[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  // rbtree_to_array(t, arr, 8);
+  // for (int i = 0; i < 8; i++)
+  // {
+  //   printf("%d\n", arr[i]);
+  // }
+  // delete_rbtree(t);
   return 0;
 }
