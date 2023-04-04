@@ -88,7 +88,7 @@ void *rotate(node_t *center_node, rbtree *t, char direction)
   return 0;
 }
 
-void fix_violate(rbtree *t, node_t *center_node)
+void fix_insert_violate(rbtree *t, node_t *center_node)
 {
   if (center_node->parent->color == RBTREE_RED)
   {
@@ -99,7 +99,7 @@ void fix_violate(rbtree *t, node_t *center_node)
       center_node->parent->color = 1 - center_node->parent->color;
       uncle->color = 1 - uncle->color;
       grand_parent->color = 1 - grand_parent->color;
-      fix_violate(t, grand_parent);
+      fix_insert_violate(t, grand_parent);
     }
     else
     {
@@ -129,7 +129,7 @@ void fix_violate(rbtree *t, node_t *center_node)
         grand_parent->color = RBTREE_RED;
         rotate(grand_parent, t, 'R');
       }
-      fix_violate(t, center_node);
+      fix_insert_violate(t, center_node);
     }
   }
   t->root->color = RBTREE_BLACK;
@@ -172,7 +172,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key)
     {
       new_parent->right = new_node;
     }
-    fix_violate(t, new_node);
+    fix_insert_violate(t, new_node);
   }
 
   return t->root;
@@ -229,7 +229,7 @@ node_t *rbtree_max(const rbtree *t)
 
 int rbtree_erase(rbtree *t, node_t *p)
 {
-  // TODO: implement erase
+
   return 0;
 }
 
