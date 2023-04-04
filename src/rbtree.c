@@ -85,7 +85,6 @@ void *rotate(node_t *center_node, rbtree *t, char direction)
       temp->parent = center_node;
     }
   }
-  return 0;
 }
 
 void fix_insert_violate(rbtree *t, node_t *center_node)
@@ -175,7 +174,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key)
     fix_insert_violate(t, new_node);
   }
 
-  return t->root;
+  return new_node;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key)
@@ -227,9 +226,46 @@ node_t *rbtree_max(const rbtree *t)
   return x;
 }
 
+node_t *find_smaller_max(const node_t *p, rbtree *t)
+{
+  if (p->left == t->nil)
+  {
+    return t->nil;
+  }
+  node_t *x = p->left;
+  while (x->right != t->nil)
+  {
+    x = x->right;
+  }
+  return x;
+}
+
 int rbtree_erase(rbtree *t, node_t *p)
 {
-
+  color_t erased_color;
+  node_t *substitute;
+  if (p->left == t->nil || p->right == t->nil)
+  {
+    substitute = p->left == t->nil ? p->right : p->left;
+  }
+  else
+  {
+    substitute = find_smaller_max(p, t);
+  }
+  erased_color = substitute->color;
+  if (p == p->parent->right)
+  {
+    p->parent->right = substitute;
+  }
+  else
+  {
+    p->parent->left = substitute;
+  }
+  if (substitute != t->nil)
+  {
+    substitute->parent = p->parent;
+  }
+  substitute->color = p->color;
   return 0;
 }
 
@@ -282,16 +318,15 @@ void preorder_print(node_t *root, rbtree *t)
 int main()
 {
   rbtree *t = new_rbtree();
-  rbtree_insert(t, 8);
-  rbtree_insert(t, 5);
-  rbtree_insert(t, 15);
   rbtree_insert(t, 12);
+  rbtree_insert(t, 8);
+  rbtree_insert(t, 1);
   rbtree_insert(t, 9);
-  rbtree_insert(t, 13);
-  rbtree_insert(t, 19);
-  rbtree_insert(t, 23);
   rbtree_insert(t, 10);
-  // preorder_print(t->root, t);
+  node_t *b = rbtree_insert(t, 15);
+  rbtree_insert(t, 13);
+  rbtree_insert(t, 23);
+
   // node_t *found = rbtree_find(t, 10);
   // printf("found key:%d color:%d parent:%d", found->key, found->color, found->parent->key);
   // node_t *min_node = rbtree_min(t);
@@ -304,6 +339,8 @@ int main()
   // {
   //   printf("%d\n", arr[i]);
   // }
-  // delete_rbtree(t);
+  rbtree_erase(t, b);
+  preorder_print(t->root, t);
+  delete_rbtree(t);
   return 0;
 }
