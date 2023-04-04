@@ -137,7 +137,7 @@ void fix_violate(rbtree *t, node_t *center_node)
 
 node_t *rbtree_insert(rbtree *t, const key_t key)
 {
-  node_t *new_node = (node_t *)malloc(sizeof(node_t));
+  node_t *new_node = (node_t *)calloc(1, sizeof(node_t));
   new_node->key = key;
   new_node->color = RBTREE_RED;
   new_node->left = t->nil;
@@ -180,21 +180,51 @@ node_t *rbtree_insert(rbtree *t, const key_t key)
 
 node_t *rbtree_find(const rbtree *t, const key_t key)
 {
-  // TODO: implement find
-
-  return t->root;
+  node_t *x = t->root;
+  while (x != t->nil)
+  {
+    if (key < x->key)
+    {
+      x = x->left;
+    }
+    else if (key > x->key)
+    {
+      x = x->right;
+    }
+    else
+    {
+      return x;
+    }
+  }
+  return NULL;
 }
 
 node_t *rbtree_min(const rbtree *t)
 {
-  // TODO: implement find
-  return t->root;
+  if (t->root == t->nil)
+  {
+    return NULL;
+  }
+  node_t *x = t->root;
+  while (x->left != t->nil)
+  {
+    x = x->left;
+  }
+  return x;
 }
 
 node_t *rbtree_max(const rbtree *t)
 {
-  // TODO: implement find
-  return t->root;
+  if (t->root == t->nil)
+  {
+    return NULL;
+  }
+  node_t *x = t->root;
+  while (x->right != t->nil)
+  {
+    x = x->right;
+  }
+  return x;
 }
 
 int rbtree_erase(rbtree *t, node_t *p)
@@ -230,18 +260,26 @@ void preorder_print(node_t *root, rbtree *t)
     preorder_print(root->right, t);
   }
 }
+
 int main()
 {
   rbtree *t = new_rbtree();
-  rbtree_insert(t, 50);
-  rbtree_insert(t, 30);
-  rbtree_insert(t, 10);
+  rbtree_insert(t, 8);
   rbtree_insert(t, 5);
-  rbtree_insert(t, 20);
-  rbtree_insert(t, 65);
-  rbtree_insert(t, 98);
-  preorder_print(t->root, t);
-
+  rbtree_insert(t, 15);
+  rbtree_insert(t, 12);
+  rbtree_insert(t, 9);
+  rbtree_insert(t, 13);
+  rbtree_insert(t, 19);
+  rbtree_insert(t, 23);
+  rbtree_insert(t, 10);
+  // preorder_print(t->root, t);
+  // node_t *found = rbtree_find(t, 10);
+  // printf("found key:%d color:%d parent:%d", found->key, found->color, found->parent->key);
+  // node_t *min_node = rbtree_min(t);
+  // node_t *max_node = rbtree_max(t);
+  // printf("min: key:%d color:%d\n", min_node->key, min_node->color);
+  // printf("max: key:%d color:%d\n", max_node->key, max_node->color);
   delete_rbtree(t);
   return 0;
 }
