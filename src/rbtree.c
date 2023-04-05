@@ -318,6 +318,7 @@ int rbtree_erase(rbtree *t, node_t *p)
 {
   node_t *substitute;
   node_t *doubly_black;
+  color_t erased_color;
   if (p->left == t->nil || p->right == t->nil)
   {
     substitute = p->left == t->nil ? p->right : p->left;
@@ -334,6 +335,7 @@ int rbtree_erase(rbtree *t, node_t *p)
     {
       p->parent->left = substitute;
     }
+    erased_color = substitute->color == RBTREE_RED ? RBTREE_RED : p->color;
   }
   else
   {
@@ -349,7 +351,7 @@ int rbtree_erase(rbtree *t, node_t *p)
       {
         doubly_black->parent = substitute; // 책에서는 x.p = y
         p->parent->right = substitute;
-        substitute->parent = p->parent;
+        // substitute->parent = p->parent;
         substitute->right = p->right;
         p->right->parent = substitute;
       }
@@ -358,7 +360,7 @@ int rbtree_erase(rbtree *t, node_t *p)
         substitute->parent->right = substitute->left;
         substitute->left->parent = substitute->parent;
         p->parent->right = substitute;
-        substitute->parent = p->parent;
+        // substitute->parent = p->parent;
         substitute->left = p->left;
         p->left->parent = substitute;
         substitute->right = p->right;
@@ -370,7 +372,7 @@ int rbtree_erase(rbtree *t, node_t *p)
       {
         doubly_black->parent = substitute; // 책에서는 x.p = y
         p->parent->left = substitute;
-        substitute->parent = p->parent;
+        // substitute->parent = p->parent;
         substitute->left = p->left;
         p->left->parent = substitute;
       }
@@ -379,16 +381,17 @@ int rbtree_erase(rbtree *t, node_t *p)
         substitute->parent->left = substitute->right;
         substitute->right->parent = substitute->parent;
         p->parent->left = substitute;
-        substitute->parent = p->parent;
+        // substitute->parent = p->parent;
         substitute->right = p->right;
         p->right->parent = substitute;
         substitute->left = p->left;
       }
     }
+    substitute->color = p->color; // 원래의 색 덮어씌우기
+    erased_color = substitute->color;
   }
   substitute->parent = p->parent; // 대체제의 부모도 이어주기
-  color_t erased_color = substitute->color;
-  substitute->color = p->color; // 원래의 색 덮어씌우기
+
   if (erased_color == RBTREE_BLACK)
   {
     fix_erase_violate(t, doubly_black);
@@ -479,10 +482,10 @@ int main()
   for (int i = 0; i < n; i++)
   {
     node_t *p = rbtree_find(t, arr[i]);
-    printf("arr[%d] = %d\n", i, p->key);
+    printf("arr[%d]: %d\n", i, p->key);
     rbtree_erase(t, p);
-    preorder_print(t->root, t);
-    printf("\n");
+    // preorder_print(t->root, t);
+    // printf("\n");
   }
   delete_rbtree(t);
   return 0;
