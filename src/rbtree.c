@@ -1,6 +1,7 @@
 #include "rbtree.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 rbtree *new_rbtree(void)
 {
@@ -239,33 +240,256 @@ node_t *find_smaller_max(const node_t *p, rbtree *t)
   }
   return x;
 }
+void fix_erase_violate(rbtree *t, node_t *doubly_black)
+{
+  if (doubly_black->parent == t->nil)
+  {
+    return;
+  }
+  if (doubly_black->color == RBTREE_RED)
+  {
+    doubly_black->color = RBTREE_BLACK;
+  }
+  else
+  {
+    node_t *sibling;
+    bool is_sibling_right_child;
+    if (doubly_black->parent->right == doubly_black)
+    {
+      sibling = doubly_black->parent->left;
+      is_sibling_right_child = true;
+    }
+    else
+    {
+      sibling = doubly_black->parent->right;
+      is_sibling_right_child = false;
+    }
+    if (sibling->color == RBTREE_RED)
+    { // case1
+      color_t temp_color = sibling->color;
+      sibling->color = 1 - sibling->parent->color;
+      sibling->parent->color = 1 - temp_color;
+      rotate(sibling->parent, t, is_sibling_right_child ? 'L' : 'R');
+      fix_erase_violate(t, doubly_black);
+    }
+    else if (sibling->color == RBTREE_BLACK && sibling->left->color == RBTREE_BLACK && sibling->right->color == RBTREE_BLACK) // case2
+    {
+      sibling->color == RBTREE_RED;
+      fix_erase_violate(t, doubly_black->parent);
+    }
+    else if (sibling->color == RBTREE_BLACK)
+    {
+      if (is_sibling_right_child && sibling->left->color == RBTREE_RED && sibling->right->color == RBTREE_BLACK)
+      { // case3, 오른쪽 형제
+        color_t temp_color = sibling->color;
+        sibling->color = 1 - sibling->left->color;
+        sibling->left->color = 1 - temp_color;
+        rotate(sibling, t, 'R');
+        fix_erase_violate(t, doubly_black);
+      }
+      else if (!is_sibling_right_child && sibling->right->color == RBTREE_RED && sibling->left->color == RBTREE_BLACK)
+      { // case3, 왼쪽 형제
+        color_t temp_color = sibling->color;
+        sibling->color = 1 - sibling->right->color;
+        sibling->right->color = 1 - temp_color;
+        rotate(sibling, t, 'L');
+        fix_erase_violate(t, doubly_black);
+      }
+      else if (is_sibling_right_child && sibling->right->color == RBTREE_RED)
+      { // case4, 오른쪽 형제
+        sibling->color = sibling->parent->color;
+        sibling->right->color = RBTREE_BLACK;
+        sibling->parent->color = RBTREE_BLACK;
+        rotate(sibling->parent, t, 'L');
+      }
+      else
+      { // case4, 왼쪽 형제
+        sibling->color = sibling->parent->color;
+        sibling->left->color = RBTREE_BLACK;
+        sibling->parent->color = RBTREE_BLACK;
+        rotate(sibling->parent, t, 'R');
+      }
+    }
+  }
+}
+
+// doubly의 부모와 doubly가 어느쪽 자식인지 보내기
+// void fix_erase_violate(rbtree *t, node_t *doubly_black)
+// {
+//   if (doubly_black->parent == t->nil)
+//   {
+//     return;
+//   }
+//   if (doubly_black->color == RBTREE_RED)
+//   {
+//     doubly_black->color = RBTREE_BLACK;
+//   }
+//   else
+//   {
+//     node_t *sibling;
+//     bool is_sibling_right_child;
+//     if (doubly_black->parent->right == doubly_black)
+//     {
+//       sibling = doubly_black->parent->left;
+//       is_sibling_right_child = true;
+//     }
+//     else
+//     {
+//       sibling = doubly_black->parent->right;
+//       is_sibling_right_child = false;
+//     }
+//     if (sibling->color == RBTREE_RED)
+//     { // case1
+//       color_t temp_color = sibling->color;
+//       sibling->color = 1 - sibling->parent->color;
+//       sibling->parent->color = 1 - temp_color;
+//       rotate(sibling->parent, t, is_sibling_right_child ? 'L' : 'R');
+//       fix_erase_violate(t, doubly_black);
+//     }
+//     else if (sibling->color == RBTREE_BLACK && sibling->left->color == RBTREE_BLACK && sibling->right->color == RBTREE_BLACK) // case2
+//     {
+//       sibling->color == RBTREE_RED;
+//       fix_erase_violate(t, doubly_black->parent);
+//     }
+//     else if (sibling->color == RBTREE_BLACK)
+//     {
+//       if (is_sibling_right_child && sibling->left->color == RBTREE_RED && sibling->right->color == RBTREE_BLACK)
+//       { // case3, 오른쪽 형제
+//         color_t temp_color = sibling->color;
+//         sibling->color = 1 - sibling->left->color;
+//         sibling->left->color = 1 - temp_color;
+//         rotate(sibling, t, 'R');
+//         fix_erase_violate(t, doubly_black);
+//       }
+//       else if (!is_sibling_right_child && sibling->right->color == RBTREE_RED && sibling->left->color == RBTREE_BLACK)
+//       { // case3, 왼쪽 형제
+//         color_t temp_color = sibling->color;
+//         sibling->color = 1 - sibling->right->color;
+//         sibling->right->color = 1 - temp_color;
+//         rotate(sibling, t, 'L');
+//         fix_erase_violate(t, doubly_black);
+//       }
+//       else if (is_sibling_right_child && sibling->right->color == RBTREE_RED)
+//       { // case4, 오른쪽 형제
+//         sibling->color = sibling->parent->color;
+//         sibling->right->color = RBTREE_BLACK;
+//         sibling->parent->color = RBTREE_BLACK;
+//         rotate(sibling->parent, t, 'L');
+//       }
+//       else
+//       { // case4, 왼쪽 형제
+//         sibling->color = sibling->parent->color;
+//         sibling->left->color = RBTREE_BLACK;
+//         sibling->parent->color = RBTREE_BLACK;
+//         rotate(sibling->parent, t, 'R');
+//       }
+//     }
+//   }
+// }
 
 int rbtree_erase(rbtree *t, node_t *p)
 {
-  color_t erased_color;
   node_t *substitute;
+  node_t *doubly_black;
   if (p->left == t->nil || p->right == t->nil)
   {
     substitute = p->left == t->nil ? p->right : p->left;
+    doubly_black = substitute;
+    if (p->parent == t->nil)
+    {
+      t->root = substitute; // 루트 삭제할 때
+    }
+    else if (p == p->parent->right) // 삭제하는 p가 오른쪽 자식일 때
+    {
+      p->parent->right = substitute; // z 없애고 대체제 붙여주기
+    }
+    else // 삭제하는 p가 왼쪽 자식일 때
+    {
+      p->parent->left = substitute;
+    }
   }
   else
   {
-    substitute = find_smaller_max(p, t);
+    substitute = find_smaller_max(p, t); // 12
+    doubly_black = substitute->left;     // nil
+    if (p->parent == t->nil)
+    {
+      t->root = substitute; // 루트 삭제할 때
+    }
+    else if (p == p->parent->right) // 삭제하는 p가 오른쪽 자식일 때
+    {
+      if (substitute->parent == p)
+      {
+        doubly_black->parent = substitute; // 책에서는 x.p = y
+        p->parent->right = substitute;
+        substitute->parent = p->parent;
+        substitute->right = p->right;
+        p->right->parent = substitute;
+      }
+      else
+      {
+        substitute->parent->right = substitute->left;
+        substitute->left->parent = substitute->parent;
+        p->parent->right = substitute;
+        substitute->parent = p->parent;
+        substitute->left = p->left;
+        p->left->parent = substitute;
+        substitute->right = p->right;
+      }
+    }
+    else // 삭제하는 p가 왼쪽 자식일 때: 걍 l/r 반전만 시킴.. 다시보기
+    {
+      if (substitute->parent == p)
+      {
+        doubly_black->parent = substitute; // 책에서는 x.p = y
+        p->parent->left = substitute;
+        substitute->parent = p->parent;
+        substitute->left = p->left;
+        p->left->parent = substitute;
+      }
+      else
+      {
+        substitute->parent->left = substitute->right;
+        substitute->right->parent = substitute->parent;
+        p->parent->left = substitute;
+        substitute->parent = p->parent;
+        substitute->right = p->right;
+        p->right->parent = substitute;
+        substitute->left = p->left;
+      }
+    }
   }
-  erased_color = substitute->color;
-  if (p == p->parent->right)
+  substitute->parent = p->parent; // 대체제의 부모도 이어주기
+  color_t erased_color = substitute->color;
+  substitute->color = p->color; // 원래의 색 덮어씌우기
+  // if (p->parent == t->nil)
+  // {
+  //   t->root = substitute; // 루트 삭제할 때
+  // }
+  // else if (p == p->parent->right) // 삭제하는 p가 오른쪽 자식일 때
+  // {
+  //   p->parent->right = substitute; // z 없애고 대체제 붙여주기
+  //   substitute->parent = p->parent; //대체제의 부모도 이어주기
+  //   if (substitute != t->nil)
+  //   {
+  //     substitute->right = p->right;
+  //   }
+  // }
+  // else // 삭제하는 p가 왼쪽 자식일 때
+  // {
+  //   p->parent->left = substitute;
+  //   if (substitute != t->nil)
+  //   {
+  //     substitute->parent->left = doubly_black;
+  //     substitute->parent = p->parent;
+  //     substitute->right = p->right;
+  //   }
+  // }
+  // substitute->color = p->color; // 원래의 색 덮어씌우기
+  if (erased_color == RBTREE_BLACK)
   {
-    p->parent->right = substitute;
+    fix_erase_violate(t, doubly_black);
   }
-  else
-  {
-    p->parent->left = substitute;
-  }
-  if (substitute != t->nil)
-  {
-    substitute->parent = p->parent;
-  }
-  substitute->color = p->color;
   return 0;
 }
 
@@ -323,8 +547,8 @@ int main()
   rbtree_insert(t, 1);
   rbtree_insert(t, 9);
   rbtree_insert(t, 10);
-  node_t *b = rbtree_insert(t, 15);
-  rbtree_insert(t, 13);
+  rbtree_insert(t, 15);
+  node_t *b = rbtree_insert(t, 13);
   rbtree_insert(t, 23);
 
   // node_t *found = rbtree_find(t, 10);
