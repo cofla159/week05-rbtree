@@ -86,6 +86,7 @@ void *rotate(node_t *center_node, rbtree *t, char direction)
       temp->parent = center_node;
     }
   }
+  return 0;
 }
 
 void fix_insert_violate(rbtree *t, node_t *center_node)
@@ -257,12 +258,12 @@ void fix_erase_violate(rbtree *t, node_t *doubly_black)
     if (doubly_black->parent->right == doubly_black)
     {
       sibling = doubly_black->parent->left;
-      is_sibling_right_child = true;
+      is_sibling_right_child = false;
     }
     else
     {
       sibling = doubly_black->parent->right;
-      is_sibling_right_child = false;
+      is_sibling_right_child = true;
     }
     if (sibling->color == RBTREE_RED)
     { // case1
@@ -274,7 +275,7 @@ void fix_erase_violate(rbtree *t, node_t *doubly_black)
     }
     else if (sibling->color == RBTREE_BLACK && sibling->left->color == RBTREE_BLACK && sibling->right->color == RBTREE_BLACK) // case2
     {
-      sibling->color == RBTREE_RED;
+      // sibling->color == RBTREE_RED;
       fix_erase_violate(t, doubly_black->parent);
     }
     else if (sibling->color == RBTREE_BLACK)
@@ -312,80 +313,6 @@ void fix_erase_violate(rbtree *t, node_t *doubly_black)
     }
   }
 }
-
-// doubly의 부모와 doubly가 어느쪽 자식인지 보내기
-// void fix_erase_violate(rbtree *t, node_t *doubly_black)
-// {
-//   if (doubly_black->parent == t->nil)
-//   {
-//     return;
-//   }
-//   if (doubly_black->color == RBTREE_RED)
-//   {
-//     doubly_black->color = RBTREE_BLACK;
-//   }
-//   else
-//   {
-//     node_t *sibling;
-//     bool is_sibling_right_child;
-//     if (doubly_black->parent->right == doubly_black)
-//     {
-//       sibling = doubly_black->parent->left;
-//       is_sibling_right_child = true;
-//     }
-//     else
-//     {
-//       sibling = doubly_black->parent->right;
-//       is_sibling_right_child = false;
-//     }
-//     if (sibling->color == RBTREE_RED)
-//     { // case1
-//       color_t temp_color = sibling->color;
-//       sibling->color = 1 - sibling->parent->color;
-//       sibling->parent->color = 1 - temp_color;
-//       rotate(sibling->parent, t, is_sibling_right_child ? 'L' : 'R');
-//       fix_erase_violate(t, doubly_black);
-//     }
-//     else if (sibling->color == RBTREE_BLACK && sibling->left->color == RBTREE_BLACK && sibling->right->color == RBTREE_BLACK) // case2
-//     {
-//       sibling->color == RBTREE_RED;
-//       fix_erase_violate(t, doubly_black->parent);
-//     }
-//     else if (sibling->color == RBTREE_BLACK)
-//     {
-//       if (is_sibling_right_child && sibling->left->color == RBTREE_RED && sibling->right->color == RBTREE_BLACK)
-//       { // case3, 오른쪽 형제
-//         color_t temp_color = sibling->color;
-//         sibling->color = 1 - sibling->left->color;
-//         sibling->left->color = 1 - temp_color;
-//         rotate(sibling, t, 'R');
-//         fix_erase_violate(t, doubly_black);
-//       }
-//       else if (!is_sibling_right_child && sibling->right->color == RBTREE_RED && sibling->left->color == RBTREE_BLACK)
-//       { // case3, 왼쪽 형제
-//         color_t temp_color = sibling->color;
-//         sibling->color = 1 - sibling->right->color;
-//         sibling->right->color = 1 - temp_color;
-//         rotate(sibling, t, 'L');
-//         fix_erase_violate(t, doubly_black);
-//       }
-//       else if (is_sibling_right_child && sibling->right->color == RBTREE_RED)
-//       { // case4, 오른쪽 형제
-//         sibling->color = sibling->parent->color;
-//         sibling->right->color = RBTREE_BLACK;
-//         sibling->parent->color = RBTREE_BLACK;
-//         rotate(sibling->parent, t, 'L');
-//       }
-//       else
-//       { // case4, 왼쪽 형제
-//         sibling->color = sibling->parent->color;
-//         sibling->left->color = RBTREE_BLACK;
-//         sibling->parent->color = RBTREE_BLACK;
-//         rotate(sibling->parent, t, 'R');
-//       }
-//     }
-//   }
-// }
 
 int rbtree_erase(rbtree *t, node_t *p)
 {
@@ -462,30 +389,6 @@ int rbtree_erase(rbtree *t, node_t *p)
   substitute->parent = p->parent; // 대체제의 부모도 이어주기
   color_t erased_color = substitute->color;
   substitute->color = p->color; // 원래의 색 덮어씌우기
-  // if (p->parent == t->nil)
-  // {
-  //   t->root = substitute; // 루트 삭제할 때
-  // }
-  // else if (p == p->parent->right) // 삭제하는 p가 오른쪽 자식일 때
-  // {
-  //   p->parent->right = substitute; // z 없애고 대체제 붙여주기
-  //   substitute->parent = p->parent; //대체제의 부모도 이어주기
-  //   if (substitute != t->nil)
-  //   {
-  //     substitute->right = p->right;
-  //   }
-  // }
-  // else // 삭제하는 p가 왼쪽 자식일 때
-  // {
-  //   p->parent->left = substitute;
-  //   if (substitute != t->nil)
-  //   {
-  //     substitute->parent->left = doubly_black;
-  //     substitute->parent = p->parent;
-  //     substitute->right = p->right;
-  //   }
-  // }
-  // substitute->color = p->color; // 원래의 색 덮어씌우기
   if (erased_color == RBTREE_BLACK)
   {
     fix_erase_violate(t, doubly_black);
@@ -528,7 +431,7 @@ void preorder_print(node_t *root, rbtree *t)
   {
     node_color = 'b';
   }
-  printf("key: %d, color: %c\n", root->key, node_color);
+  printf("key: %d, color: %c, pointer: %p\n", root->key, node_color, root);
   if (root->left != t->nil)
   {
     preorder_print(root->left, t);
@@ -542,29 +445,45 @@ void preorder_print(node_t *root, rbtree *t)
 int main()
 {
   rbtree *t = new_rbtree();
-  rbtree_insert(t, 12);
-  rbtree_insert(t, 8);
-  rbtree_insert(t, 1);
-  rbtree_insert(t, 9);
-  rbtree_insert(t, 10);
-  rbtree_insert(t, 15);
-  node_t *b = rbtree_insert(t, 13);
-  rbtree_insert(t, 23);
+  // rbtree_insert(t, 12);
+  // rbtree_insert(t, 8);
+  // rbtree_insert(t, 1);
+  // rbtree_insert(t, 9);
+  // rbtree_insert(t, 10);
+  // rbtree_insert(t, 15);
+  // node_t *b = rbtree_insert(t, 13);
+  // rbtree_insert(t, 23);
 
-  // node_t *found = rbtree_find(t, 10);
-  // printf("found key:%d color:%d parent:%d", found->key, found->color, found->parent->key);
-  // node_t *min_node = rbtree_min(t);
-  // node_t *max_node = rbtree_max(t);
-  // printf("min: key:%d color:%d\n", min_node->key, min_node->color);
-  // printf("max: key:%d color:%d\n", max_node->key, max_node->color);
-  // int arr[] = {0, 0, 0, 0, 0, 0, 0, 0};
-  // rbtree_to_array(t, arr, 8);
-  // for (int i = 0; i < 8; i++)
-  // {
-  //   printf("%d\n", arr[i]);
-  // }
-  rbtree_erase(t, b);
+  // // node_t *found = rbtree_find(t, 10);
+  // // printf("found key:%d color:%d parent:%d", found->key, found->color, found->parent->key);
+  // // node_t *min_node = rbtree_min(t);
+  // // node_t *max_node = rbtree_max(t);
+  // // printf("min: key:%d color:%d\n", min_node->key, min_node->color);
+  // // printf("max: key:%d color:%d\n", max_node->key, max_node->color);
+  // // int arr[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  // // rbtree_to_array(t, arr, 8);
+  // // for (int i = 0; i < 8; i++)
+  // // {
+  // //   printf("%d\n", arr[i]);
+  // // }
+  // rbtree_erase(t, b);
+  // preorder_print(t->root, t);
+  const key_t arr[] = {10, 5, 8, 34, 67, 23, 156, 24, 2, 12, 24, 36, 990, 25};
+  const size_t n = sizeof(arr) / sizeof(arr[0]);
+  for (int i = 0; i < n; i++)
+  {
+    node_t *p = rbtree_insert(t, arr[i]);
+  }
   preorder_print(t->root, t);
+
+  for (int i = 0; i < n; i++)
+  {
+    node_t *p = rbtree_find(t, arr[i]);
+    printf("arr[%d] = %d\n", i, p->key);
+    rbtree_erase(t, p);
+    preorder_print(t->root, t);
+    printf("\n");
+  }
   delete_rbtree(t);
   return 0;
 }
